@@ -1,0 +1,979 @@
+<!Doctype html>
+<html>
+  <head>
+    <title>Polar Battleship</title>
+    <style>
+      *{
+        margin: 0;
+        padding: 0;
+      }
+      body{
+        background-color: #f7f5e8;
+        overflow-y: hidden;
+      }
+      #tooltipButton{
+        position: absolute;
+      }
+      #next{
+        padding: 3px 20px 3px 20px;
+        position: absolute;
+        bottom: 2vh;
+        display:none;
+      }
+      #shipChooser{
+        display: none;
+      }
+      #pointChooser{
+        text-align: center;
+        display: none;
+      }
+      #text{
+        padding: 0.5vw;
+        margin: 0!important;
+      }
+      #attack{
+         position: relative;
+         display: table;
+         margin: 0 auto;
+      }
+      .fontSizes{
+        font-size: calc(2.5vh + 1vw);
+      }
+      .button{
+        cursor: pointer;
+        border: 1px solid black;
+        background-color: #34bd00;
+        text-align: center;
+        padding: 3px 20px 3px 20px;
+        border-radius: 0.8vw;
+      }
+      .chosen{
+        width: 25vw;
+      }
+      #chosenCompRad{
+        width: 4vw;
+      }
+      #chosenCompTheta{
+        width: 10vw;
+      }
+      #instructions{
+        position: absolute;
+        top: 0px;
+        right: 0px;
+        text-align: center;
+        width: 33.33vw;
+        height: 100vh;
+      }
+      #computerQuestion{
+        display: none;
+        font-size: calc(2vh + 0.75vw);
+      }
+      #piButton{
+        cursor: pointer;
+      }
+      #compPointSubmit{
+        margin: 5px;
+        border-radius: 5px;
+        padding: 3px;
+      }
+      #startingScreen{
+        text-align:center;
+        position: absolute;
+        width:100%;
+        top: 48vh;
+      }
+      
+    </style>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css" integrity="sha384-Zug+QiDoJOrZ5t4lssLdxGhVrurbmBWopoEl+M6BdEfwnCJZtKxi1KgxUyJq13dy" crossorigin="anonymous">
+  </head>
+  <body>
+    <div id="startingScreen">
+      <h1>
+        Loading...
+      </h1>
+    </div>
+    <canvas id = "canvas"></canvas>
+    <div id = "instructions" class = "fontSizes">
+      <p id = "text"></p>
+      <div id = "shipChooser">
+        <select id = "numShips">
+          <option value="5">5</option>
+          <option value="10">10</option>
+        </select>
+      </div>
+      <div id = "pointChooser">
+        Radius: <span id = "radius">1</span><br>
+        <input type="range" id="chosenRadius" class = "chosen" oninput="updateRadius(this.value)" onchange="updateRadius(this.value)"  min="-3" max="4" value="1" /><br>
+        Theta: <span id = "theta">0</span>&nbsp;&nbsp;&nbsp;&nbsp;<br>
+        <input type="range" id="chosenTheta" class = "chosen" oninput="updateTheta(this.value)" onchange="updateTheta(this.value)" min="-23" max="24" value="0" />
+        <div id = "attack" class = "button">Attack!</div>
+      </div>
+        <p id = "attackMessage">
+        </p>
+      <div id="computerQuestion">
+      <p id="question">
+        What point was attacked? Enter simplified r and &theta; (in radians) <br>Ex: 4&pi;/3
+      </p>
+        Radius<br>
+        <input type="number" min="-4" max="4" id="chosenCompRad"/><br>
+        Theta (-2&pi;, 2&pi;]<br>
+        <input type="text" id="chosenCompTheta"/><button id = "piButton" onclick = "addPi()">&pi;</button><br>
+        <button id="compPointSubmit" onclick="submitGuess()">Submit</button>    
+        <p id="correctAnswer">
+        </p>
+      </div>
+      <div id = "next" class = "button">Next</div>
+    </div>
+    <button id = "tooltipButton" data-toggle="tooltip"></button>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/js/bootstrap.min.js" integrity="sha384-a5N7Y/aK3qNeh15eJKGWxsqtnX/wWdSZSKp+81YjTmS15nvnvxKHuzaWwXHDli+4" crossorigin="anonymous"></script>
+    <script>
+      var isMobile = /(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|ipad|iris|kindle|Android|Silk|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino/i.test(navigator.userAgent) 
+            || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(navigator.userAgent.substr(0,4));
+      if(isMobile){
+        alert("This application is not made for mobile devices");
+        window.location = "http://www.msolonko.net";
+      }
+      else if(window.innerWidth * 3 / 4 <= window.innerHeight){
+        alert("Please change the aspect ratio so that the width is greater than the height");
+        window.location = "http://www.msolonko.net";
+      }
+      var won = false;
+      var computerAttackPoint;
+      const WIDTH = window.innerWidth;
+      const HEIGHT = window.innerHeight;
+      const MULTIPLIER = 0.9;
+      var canvas = document.getElementById("canvas");
+      var ctx = canvas.getContext('2d');
+      canvas.width = WIDTH;
+      canvas.height = HEIGHT;
+            ctx.translate(0.5, 0.5);
+
+      var playerMap, computerMap, computer;
+      var correctAnswerField = document.getElementById("correctAnswer");
+      var submitAttemptButton = document.getElementById("compPointSubmit");
+      var attackButton = document.getElementById("attack");
+      var pointChooser = document.getElementById("pointChooser");
+      var instructionsDiv = document.getElementById("instructions");
+      var attackMessageField = document.getElementById("attackMessage");
+      var instructions = document.getElementById("text");
+      var computerQuestion = document.getElementById("computerQuestion");
+      var next = document.getElementById("next");
+      var shipChooser = document.getElementById("shipChooser");
+      var instructionIndex = 0;
+      var instructionText = ["Welcome to the polar battleship game! You will see instructions pertinent to the game in this box. Before you start the game, there is some setup that needs to be done.", 
+                             "We will now position the ships on the polar map! Choose below if you would like to play with 5 or 10 ships!",
+                             "Choose two points on the map for the front and the back of your battleship!<br><br>",
+                             "You are going to play against the computer. When it's your turn, you will see the computer's map, which will fill in as you attack. <span style='color:blue'>Blue</span> represents an unchecked point, <span style='color:green'>green</span> an empty point, and <span style='color:red'>red</span> a successful strike!",
+                             "It's your turn! <br>Choose a radius and theta for the point that you want to attack!",
+                             "Computer's turn...<br>"];
+      var tooltipButton = document.getElementById("tooltipButton");
+      var fracStrings = ['0', '\u03C0/12', '\u03C0/6', '\u03C0/4', '\u03C0/3', '5\u03C0/12', '\u03C0/2', '7\u03C0/12', '2\u03C0/3', '3\u03C0/4', '5\u03C0/6', '11\u03C0/12', '\u03C0', '13\u03C0/12', '7\u03C0/6', '5\u03C0/4', '4\u03C0/3', '17\u03C0/12', '3\u03C0/2', '19\u03C0/12', '5\u03C0/3', '7\u03C0/4', '11\u03C0/6', '23\u03C0/12', '2\u03C0'];
+      var shipNumber = 5;
+      var shipIterator = 0;
+      var shipSizes = [];
+      var allowedLocations = [];
+      var playerCorrectAnswers = [0, 0];
+      var curShipLocations = [false, -1, -1];
+      //[choosing, start, end]
+      var loadcount = 0;
+      var loadtotal = 0;
+      var preloaded = false;
+      var sub = [];
+      var imagesrc = [];
+      for(var i = 1; i<5; i++){
+        imagesrc.push("/img/ships/battleship_"+i+".png");
+      }
+      imagesrc.push("/img/ships/island.png");
+      var island = {};
+      island.dim = Math.min(HEIGHT, WIDTH*2/3) / 4;
+      loadImages(imagesrc);
+ 
+// Load images
+function loadImages(imagefiles) {
+    // Initialize variables
+    loadcount = 0;
+    loadtotal = imagefiles.length;
+    preloaded = false;
+ 
+    // Load the images
+    var loadedimages = [];
+    for (var i=0; i<imagefiles.length; i++) {
+        // Create the image object
+        var image = new Image();
+        // Add onload event handler
+        image.onload = function () {
+            loadcount++;
+            if (loadcount == loadtotal) {
+                // Done loading
+                preloaded = true;
+            }
+        };
+ 
+        // Set the source url of the image
+        image.src = imagefiles[i];
+ 
+        // Save to the image array
+        loadedimages[i] = image;
+    }
+ 
+    // Return an array of images
+  
+      island.img = loadedimages[4];
+      sub = [null].concat(loadedimages.slice(0, 4));
+}
+
+      function Battleship(size, location){
+        //location format: [[1 for PI/12, 4], [3 for PI/4, 4]] etc.
+        this.size = size;
+        //info format [[0-23, (1 if hit, 0 otherwise)]
+        this.info = [];
+        this.radius = location[0][1];
+        for (var i = 0; i < location.length; i++) {
+          this.info[i] = [location[i][0], 0];
+        }     
+      }
+      Battleship.prototype.isAlive = function(){
+        //returns booleans if ship is alive or not
+        for(var i = 0; i < this.info.length; i++){
+            if(this.info[i][1] == 0){
+              return true;
+            }
+          }
+          return false;
+      }
+      Battleship.prototype.hit = function(angle){
+         //coor format: 0-23, assumed that ship is on angle and radius and that ship hasn't been hit there before
+          this.info[findInArray(this.info, [angle, 0])][1] = 1;
+      }
+      Battleship.prototype.getMiddlePoint = function(){
+        //gets middle point between ship end points (in polar)
+        var mp = this.getMidPoint();
+        return realToPolar(mp[0], mp[1])[1];
+      }
+      Battleship.prototype.getMidPoint = function(){
+        //returns real coordinates of middle point of ship
+        var p1 = polarToReal(this.radius+1, this.info[0][0] * Math.PI/12);
+        var p2 = polarToReal(this.radius+1, this.info[this.info.length-1][0] * Math.PI/12);
+        return [(p1[0]+p2[0])/2,(p1[1]+p2[1])/2];
+      }
+      Battleship.prototype.distanceBetween = function(t1, t2){
+        //gets distance between endpoints of ship
+          if(this.size == 1){
+            t1 = 0;
+            t2 = 1;
+          }
+          point1 = polarToReal(this.radius+1, t1 * Math.PI/12);
+          point2 = polarToReal(this.radius+1, t2 * Math.PI/12);
+          return Math.sqrt(Math.pow(point1[0] - point2[0], 2) + Math.pow(point1[1] - point2[1], 2));
+      }
+      Battleship.prototype.display = function(){
+        //displays the ship on the polar map
+        var point = this.getMidPoint();
+        var width = (this.size != 1) ? this.distanceBetween(this.info[0][0], this.info[this.info.length-1][0]) * (1 + 0.12 * (5-this.size)) * (1 + 0.12 * (5-(this.radius+1))) : this.distanceBetween(this.info[0][0], this.info[this.info.length-1][0]) * (1.24)  * (1 + 0.12 * (5-(this.radius+1)));
+        var ratio = sub[this.size].width / width;
+        var height = sub[this.size].height / ratio;
+        ctx.save()
+        ctx.translate(point[0], point[1]);
+        ctx.rotate(-1*this.getMiddlePoint() + Math.PI/2);
+        ctx.drawImage(sub[this.size], -width/2, -height/2, width, height);
+				ctx.restore();
+      }
+      function Map(name){
+        //used as playerMap and computerMap
+        this.coordinates = [];
+        this.ships = [];
+        this.name = name;
+        for(var k = 1; k < 5; k++){
+          this.coordinates[k] = [];
+          for(var i = 0; i < 24; i++){
+            this.coordinates[k].push(0);
+          }
+        }
+      }
+      Map.prototype.placeShip = function(r, t_start, t_end, shipSize, draw){
+        //adds ship to the map (optionally draws it)
+          var shipCoor = [];
+          if(this.thetaDistance(t_start, t_end) > 0){
+            for(var i = 0; i < shipSize; i++){
+              this.coordinates[r][toDomain(t_start + i)] = 1;
+              shipCoor.push([toDomain(t_start+i), r]);
+            }
+          }
+          else{
+            for(var i = 0; i < shipSize; i++){
+              this.coordinates[r][toDomain(t_end + i)] = 1;
+              shipCoor.push([toDomain(t_end+i), r]);
+            }
+          }
+          this.ships.push(new Battleship(shipSize, shipCoor));
+          if(draw){
+            this.ships[this.ships.length - 1].display();
+          }  
+      }
+      Map.prototype.thetaDistance = function(t1, t2){
+        //returns value taht indicates if theta distance is negative or positive
+        point1 = polarToReal(1, t1*Math.PI/12);
+        point2 = polarToReal(1, t2*Math.PI/12);
+        return -1*((point1[0] - WIDTH/3)*(point2[1]-HEIGHT/2) - (point2[0]-WIDTH/3)*(point1[1]-HEIGHT/2));
+      }
+      Map.prototype.draw = function(drawShips){
+        //draws map with ships
+        if(drawShips){
+           this.ships.forEach(function(ship){
+              ship.display();
+          });
+        }
+        ctx.strokeStyle = "gray";
+        for(var j = 2; j < 6; j++){
+            ctx.beginPath();
+            ctx.arc(WIDTH / 3, HEIGHT / 2, MULTIPLIER * Math.min(HEIGHT, WIDTH*2/3) / 10 * j, 0, 2 * Math.PI);
+            ctx.stroke();
+        }
+        ctx.strokeStyle = "black";
+        for(var i = 0; i < 24; i++){
+          ctx.lineWidth = (i % 6 == 0) ? 2 : 1;
+          ctx.beginPath();
+          ctx.moveTo(WIDTH / 3, HEIGHT / 2);
+          ctx.lineTo(WIDTH / 3 + MULTIPLIER / 2 * Math.min(HEIGHT, WIDTH*2/3) * Math.cos(i * Math.PI / 12), HEIGHT / 2 + MULTIPLIER / 2 * Math.min(HEIGHT, WIDTH*2/3) * Math.sin(i * Math.PI / 12));
+          ctx.stroke();
+        }
+        for(var k = 2; k < 6; k++){
+          for(var i = 0; i < 24; i++){
+            var point = polarToReal(k, i * Math.PI / 12);
+            fillCircle("blue", 4, point[0], point[1]);
+          }
+        }
+        ctx.fillStyle = "black";
+        ctx.font = "1.7vw Verdana";
+        ctx.fillText("Now viewing: " + this.name, WIDTH/100, WIDTH/50);
+        ctx.drawImage(island.img, WIDTH/3-island.dim/2, HEIGHT/2-island.dim/2, island.dim, island.dim);
+      }
+      Map.prototype.overlay = function(){
+        //overlay with checked points
+        if(Map.turn == 1){
+          this.ships.forEach(function(ship){
+             if(!ship.isAlive()){
+                ship.display();
+             }
+          });
+          computerMap.draw(false);
+        }
+        else{
+          playerMap.draw(true);
+        }
+        for(var r = 1; r < 5; r++){
+          for(var t = 0; t < 24; t++){
+            if(this.coordinates[r][t] == 2){
+              var point = polarToReal(r+1, t * Math.PI / 12);
+              fillCircle("orange", 7, point[0], point[1]);
+            }
+            else if(this.coordinates[r][t] == 3){
+              var point = polarToReal(r+1, t * Math.PI / 12);
+              fillCircle("red", 7, point[0], point[1]);
+            }
+          }
+        }
+      }
+      Map.refreshMap = function(map, point){
+        ctx.clearRect(0, 0, WIDTH, HEIGHT);
+        generateBorders();
+        map.overlay();
+        const xy = polarToReal(point[0], point[1] * Math.PI/12);
+        fillCircle("green", 9, xy[0], xy[1]);
+        showPlayerScore();
+      }
+      function Computer(){
+        //opponent
+        this.coordinates = [];
+        for(var k = 1; k < 5; k++){
+          this.coordinates[k] = [];
+          for(var i = 0; i < 24; i++){
+            this.coordinates[k].push(0);
+          }
+        }
+        this.queue = [];
+      }
+      Computer.prototype.choosePointOfAttack = function(){
+        //chooses random attack or from queue
+        if(this.queue.length == 0){
+          return this.chooseRandomPoint();
+        }
+        else{
+          return this.queue.pop();
+        }
+ 
+      }
+      Computer.prototype.chooseRandomPoint = function(){
+        //chooses random unchecked point
+        do{
+         var r = Math.floor(Math.random()*4) + 1;
+        }while(this.radiusChecked(r));
+        var thetas = this.getThetas(r);
+        var theta = thetas[Math.floor(Math.random() * thetas.length)];
+        return [r, theta];
+      }
+      Computer.prototype.radiusChecked = function(r){
+        //checks if any points are left to check for given radius
+        return !this.coordinates[r].includes(0);
+      }
+      Computer.prototype.getThetas = function(r){
+        //returns unchecked thetas for given radius
+        var thetas = [];
+        for(var i = 0; i < 24; i++){
+          if(this.coordinates[r][i] == 0){
+            thetas.push(i);
+          }
+        }
+        return thetas;
+      }
+      Computer.prototype.attack = function(){
+        //performs attack
+        computerAttackPoint = this.choosePointOfAttack();
+        var retVal = attack(computerAttackPoint[0], computerAttackPoint[1], playerMap);
+        this.coordinates[computerAttackPoint[0]][computerAttackPoint[1]] = 1;
+        attackMessageField.innerHTML = retVal[0];
+        ctx.clearRect(0, 0, WIDTH, HEIGHT);
+        generateBorders();
+        playerMap.overlay();
+        const xy = polarToReal(computerAttackPoint[0]+1, computerAttackPoint[1] * Math.PI/12);
+        fillCircle("green", 9, xy[0], xy[1]);
+        if(checkVictory(playerMap)){
+            winMessage("red", "The Computer Won");
+        }
+        if(retVal[1]){
+          var point = [computerAttackPoint[0], toDomain(computerAttackPoint[1] + 1)];
+          if(this.coordinates[point[0]][point[1]] == 0 && findInArray(this.queue, point) == -1){
+            this.queue.push(point);
+          }
+          point = [computerAttackPoint[0], toDomain(computerAttackPoint[1] - 1)];
+          if(this.coordinates[point[0]][point[1]] == 0 && findInArray(this.queue, point) == -1){
+            this.queue.push(point);
+          }
+        }
+      }
+      function setup(){
+        //sets up the map
+        playerMap = new Map("Your Map");
+        Map.turn = 0;
+        computer = new Computer();
+        ctx.strokeStyle = "#0000FF";
+        generateBorders();
+        playerMap.draw(true);
+        setupInstructionsDiv();
+      }
+      function setupInstructionsDiv(){
+        //centers next button and writes first set of instructions
+        next.style.left = (WIDTH/6 - next.offsetWidth/2)+ "px";
+        writeInstructions(instructionText[instructionIndex]);
+      }
+      function generateBorders(){
+        //separates graph from instructions
+        ctx.strokeStyle = "blue";
+        ctx.beginPath();
+        ctx.moveTo(WIDTH * 2 / 3, 0);
+        ctx.lineTo(WIDTH * 2 / 3, HEIGHT);
+        ctx.stroke();
+      }
+      
+      function addPi(){
+        var element = document.getElementById("chosenCompTheta");
+        var val = element.value;
+        element.value = val.slice(0, element.selectionStart) + "\u03C0" + val.slice(element.selectionStart);  
+      }
+      
+      document.onclick = function(e) {
+        //used for choosing ship locations
+        if(!won){
+          var x = e.clientX - canvas.getBoundingClientRect().left;
+          var y = e.clientY - canvas.getBoundingClientRect().top;
+          var mousePolar = realToPolar(x, y);
+          var radialResult = checkRadialDistance(mousePolar[0], mousePolar[1]);
+          if(radialResult[0][0]){
+            if(curShipLocations[0]){
+              r = radialResult[1] - 1; //accounts for island
+              t = radialResult[0][2];
+              if(curShipLocations[1] == -1){
+                if(allowedLocations[r].indexOf(t) != -1){
+                  curShipLocations[1] = [r, t];
+                  ctx.clearRect(0, 0, WIDTH, HEIGHT);
+                  generateBorders();
+                  playerMap.draw(true);
+                  if(shipSizes[shipIterator] == 1){
+                    curShipLocations[2] = [r, t];
+                    playerMap.placeShip(curShipLocations[1][0], curShipLocations[1][1], curShipLocations[2][1], shipSizes[shipIterator], true);
+                    enableButton(next);
+                  }
+                  else{
+                    var point = polarToReal(r+1, t * Math.PI / 12);
+                    fillCircle("red", 10, point[0], point[1]);
+                    getAllowedEndingLocations(shipSizes[shipIterator], r, t, playerMap);
+                    labelAllowedLocations();
+                  }
+                }
+              }
+              else{
+                if(allowedLocations[r].indexOf(t) != -1){
+                  curShipLocations[0] = false;
+                  curShipLocations[2] = [r, t];
+                  ctx.clearRect(0, 0, WIDTH, HEIGHT);
+                  generateBorders();
+                  playerMap.placeShip(curShipLocations[1][0], curShipLocations[1][1], curShipLocations[2][1], shipSizes[shipIterator], true);
+                  playerMap.draw(true);
+                  enableButton(next);
+                }
+              }
+            }
+          }
+        }
+      }
+      document.onmousemove = function(e) {
+        //turns on pointer when user about to click on a coordinate
+        if(instructionIndex != 4){
+          var x = e.clientX - canvas.getBoundingClientRect().left;
+          var y = e.clientY - canvas.getBoundingClientRect().top;
+          var mousePolar = realToPolar(x, y);
+          var radialResult = checkRadialDistance(mousePolar[0], mousePolar[1]);
+          if(radialResult[0][0]){
+            document.body.style.cursor = "pointer";
+          }
+          else{
+            document.body.style.cursor = "default";
+          }
+        }
+      }
+      function checkRadialDistance(mr, mt){
+         //checks if mouse is close enough to point
+         for (var pr = 2; pr <= 5; pr += 1) {
+            if (Math.abs(mr - pr) < Math.PI / 25) { 
+              return [checkArcDistance(pr, mt), pr];
+            }
+         }
+        return [[false, false], false];
+      }
+      function checkArcDistance(pr, mt) { // check arc distance
+          for (var ipt = 0; ipt <= 24; ipt += 1) {
+            var pt = ipt * Math.PI / 12; 
+            if (Math.abs(mt - pt)  < Math.PI / 25 / pr) { //calculates arc distance
+              return [true, pt, ipt];
+            }
+          }
+        return [false, false];
+      }
+      function changeMap(n){
+        //switches map
+        ctx.clearRect(0, 0, WIDTH, HEIGHT);
+        generateBorders();
+        if(n == 0){
+          playerMap.overlay();
+        }
+        else{
+          computerMap.overlay();
+        }
+      }
+      next.onclick = function(e){
+        //used for player proceeding through instructions
+        if(next.style.backgroundColor != "gray"){
+          switch(instructionIndex){
+            case 0:
+              instructionStep(instructionText[++instructionIndex], false);
+              shipChooser.style.display = "block";
+              break;
+            case 1:
+              shipNumber = Number(document.getElementById("numShips").value);
+              shipChooser.style.display = "none";
+              prepShipCycle();
+              instructionStep(instructionText[++instructionIndex] + " Ship #" + (shipIterator + 1) + " <br>Ship Length: " + shipSizes[shipIterator], true);
+              curShipLocations[0] = true;
+              getAllowedStartingLocations(shipSizes[shipIterator], playerMap);
+              labelAllowedLocations();
+              break;
+            case 2://placing ships
+              if(shipIterator <= shipNumber - 1){
+                shipIterator++;
+                instructionStep(instructionText[instructionIndex] + " Ship #" + (shipIterator + 1) + " <br>Ship Length: " + shipSizes[shipIterator], true);
+                curShipLocations = [true, -1, -1];
+                getAllowedStartingLocations(shipSizes[shipIterator], playerMap);
+                labelAllowedLocations();
+              }
+              if(shipIterator == shipNumber-1){
+                instructionIndex++;
+              }
+              break;
+            case 3://computer generates ship locations
+              curShipLocations = [false, -1, -1];
+              instructionStep(instructionText[instructionIndex++], false);
+              ctx.clearRect(0, 0, WIDTH, HEIGHT);
+              generateBorders();
+              playerMap.draw(true);
+              computerMap = new Map("Computer's Map");
+              for(var i = 0; i < shipNumber; i++){
+                getAllowedStartingLocations(shipSizes[i], computerMap);
+                do{
+                  var r = Math.ceil(Math.random()*4);
+                }while(allowedLocations[r].length == 0);
+                var t1 = allowedLocations[r][Math.floor(Math.random()*allowedLocations[r].length)];
+                if(shipSizes[i] == 1){
+                  computerMap.placeShip(r, t1, t1, shipSizes[i], false);
+                  continue;
+                }
+                getAllowedEndingLocations(shipSizes[i], r, t1, computerMap);
+                var t2 = allowedLocations[r][Math.floor(Math.random()*allowedLocations[r].length)];
+                computerMap.placeShip(r, t1, t2, shipSizes[i], false);
+              }
+              break;
+            case 4: //attacking stage
+              attackMessageField.innerHTML = "";
+              if(Map.turn == 0){
+                Map.turn = 1;
+                changeMap(Map.turn);
+                enableButton(attackButton);
+                document.getElementById("chosenRadius").disabled = false;
+                document.getElementById("chosenTheta").disabled = false;
+                instructionStep(instructionText[instructionIndex], true);
+                pointChooser.style.display = "block";
+                computerQuestion.style.display = "none";
+              }
+              else{
+                submitAttemptButton.disabled = false;
+                correctAnswerField.innerHTML = "";
+                Map.turn = 0;
+                changeMap(Map.turn);
+                pointChooser.style.display = "none";
+                computerQuestion.style.display = "block";
+                disableButton(next);
+                instructionStep(instructionText[instructionIndex + 1], false);
+                computer.attack();
+              }
+              showPlayerScore();
+              break;
+          }
+        }
+      }
+      attackButton.onclick = function(e){//player attack
+        if(Map.turn == 1){
+          //REPEATED CODE???
+          const allowedRadius = (Number(document.getElementById("chosenRadius").value) < 1) ? Number(document.getElementById("chosenRadius").value)-1 : Number(document.getElementById("chosenRadius").value);
+          radiusAndTheta = convertInputs(allowedRadius, Number(document.getElementById("chosenTheta").value));
+          const message = attack(radiusAndTheta[0], radiusAndTheta[1], computerMap);
+          attackMessageField.innerHTML = message;
+          if(message != "You already attacked this point. Try again!"){
+          Map.refreshMap(computerMap, [radiusAndTheta[0]+1, radiusAndTheta[1]]);
+            if(checkVictory(computerMap)){
+              winMessage("green", "You Won!");
+            }
+          }
+        }
+      }
+      function findInArray(array, item) {
+        //finds array in array given 2D array and an array to find (returns first index of occurrence if any)
+        for (var i = 0; i < array.length; i++) {
+          var bool = true;
+          for (var j = 0; j < array[i].length; j++){
+            if(item[j] != array[i][j]){
+              bool = false;
+              break;
+            }
+          }
+          if(bool){
+            return i;
+          }
+        }
+        return -1;
+      }
+      function polarToReal(r, theta){
+        //returns array [x, y] on the actual canvas given radius and theta on the drawn map
+        return [WIDTH / 3 + r * MULTIPLIER / 10 * Math.min(HEIGHT, WIDTH*2/3) * Math.cos(theta), HEIGHT / 2 - r * MULTIPLIER / 10 * Math.min(HEIGHT, WIDTH*2/3) * Math.sin(theta)]
+      }
+      function realToPolar(mouseX, mouseY){
+        //returns polar coordinates given mouse coordinates  (r, theta)
+        var newX = mouseX - WIDTH/3;
+        var newY = mouseY - HEIGHT/2;
+        var r = (Math.sqrt(Math.pow(newX, 2) + Math.pow(newY, 2))) / (MULTIPLIER * Math.min(HEIGHT, WIDTH*2/3) / 10);
+        var theta = Math.atan2(newY, newX);
+        if(newY > 0 && newX > 0){
+          theta = Math.PI * 2 - theta;
+        }
+        else if(newY > 0 && newX < 0){
+          theta = 2 * Math.PI - theta;
+        }
+        return [r, Math.abs(theta)];
+      }
+      function writeInstructions(text){
+        //displays instructions in the box on the right
+        instructions.innerHTML = text;
+      }
+      function prepShipCycle(){
+        //sets up array with shipSizes
+         shipSizes = (shipNumber == 5) ? [4, 3, 2, 1, 1] : [4, 4, 3, 3, 2, 2, 2, 1, 1, 1];
+      }
+      function instructionStep(text, changeNext){
+        //shows instructions and changes look of next button
+        if(changeNext){
+          disableButton(next);
+        }
+        writeInstructions(text);
+      }
+      function getAllowedStartingLocations(size, map){
+        //returns array in form of coordinates with every valid starting point for a ship of given size
+        allowedLocations = [];
+        for(var r = 1; r < 5; r++){
+          allowedLocations[r] = [];
+          for(var t = 0; t < 24; t++){
+            if(map.coordinates[r][t] == 0){
+              bool1 = bool2 = true;
+              for(var t1 = 1; t1 < size; t1++){
+                if(map.coordinates[r][toDomain(t + t1)] == 1){
+                  bool1 = false;
+                  break;
+                }
+              }
+              for(var t2 = 1; t2 < size; t2++){
+                if(map.coordinates[r][toDomain(t - t2)] == 1){
+                  bool2 = false;
+                  break;
+                }
+              }
+              if(bool1 || bool2){
+                allowedLocations[r].push(t);
+              }
+            }
+          }
+        }
+      }
+      function getAllowedEndingLocations(size, r, t, map){
+        //updates variable with allowed locations for endpoint of ship
+        allowedLocations = [];
+        for(var i = 1; i < 5; i++){
+          allowedLocations[i] = [];
+          if(i == r){
+            var bool1 = true;
+            for(var j = 1; j < size; j++){
+              if(map.coordinates[r][toDomain(t + j)] != 0){
+                bool1 = false;
+                break;
+              }
+            }
+            if(bool1){
+                allowedLocations[r].push(toDomain(t+size-1));
+            }
+            var bool2 = true;
+            for(var j = 1; j < size; j++){
+              if(map.coordinates[r][toDomain(t - j)] != 0){
+                bool2 = false;
+                break;
+              }
+            }
+            if(bool2){
+                allowedLocations[r].push(toDomain(t-(size-1)));
+            }
+          }
+        }
+      }
+      function labelAllowedLocations(){
+        //labels allowed locations with green
+         for(var r = 1; r < 5; r++){
+            for(var t = 0; t < allowedLocations[r].length; t++){
+              point = polarToReal(r+1, allowedLocations[r][t] * Math.PI / 12); //1 added due to middle island that is technically at r=1
+              fillCircle("green", 7, point[0], point[1]);
+            }
+         }
+      }
+      function toDomain(n){
+        //converts theta to 0-23
+          if(n > 23){
+            return n-24;
+          }
+          else if(n < 0){
+            return n+24;
+          }
+          return n;
+      }
+      
+      function convertInputs(r, t){
+        return (r<0) ? [Math.abs(r), toDomain(t+12)] : [r, toDomain(t)];
+      }
+      function nToString(n){
+        //converts angle to string representation
+          return fracStrings[n];
+      }
+      function updateTheta(val){
+        document.getElementById("theta").innerHTML = ((val<0)?"-":"")+nToString(Math.abs(val));
+      }
+      function updateRadius(val){
+        if(val < 1) val -=1;
+        document.getElementById("radius").innerHTML = val;
+      }
+      function attack(r, t, map){
+        //used for attacking a ship by both players
+        if(map.coordinates[r][t] != 0 && map.coordinates[r][t] != 1){
+          return "You already attacked this point. Try again!";
+        }
+        else{
+          if(map == computerMap){
+            disableButton(attackButton);
+            enableButton(next);
+          }
+          if(map.coordinates[r][t] == 0){
+            map.coordinates[r][t] += 2;
+            return (map == computerMap) ? "You missed!" : ["The computer missed", false];
+          }
+          else{
+              map.coordinates[r][t] += 2;
+              for(var i = 0; i<map.ships.length; i++){
+                  var ship = map.ships[i];
+                  var index = findInArray(ship.info, [t, 0]);
+                  if(ship.radius == r && index != -1){
+                    ship.hit(ship.info[index][0]);
+                    if(ship.isAlive()){
+                      return (map == computerMap) ? "You hit a battleship!" : ["The computer hit your battleship", true];
+                    }
+                    else{
+                      return (map == computerMap) ? "You destroyed a battleship!" : ["The computer destroyed your battleship", false];
+                    }
+                  }
+              }
+          }
+        }
+      }
+      function checkVictory(map){
+        //returns true if won
+        for(var i = 0; i < map.ships.length; i++){
+          if(map.ships[i].isAlive()){
+            return false;
+          }
+        }
+        disableButton(next);
+        return true;
+      }
+      function disableButton(button){
+        //disables buttons
+        button.style.cursor = "default";
+        button.style.backgroundColor = "gray";
+      }
+      function enableButton(button){
+        //enables buttons
+        button.style.cursor = "pointer";
+        button.style.backgroundColor = "#34bd00";
+      }
+      function winMessage(color, text){
+        //displays victory message
+        won = true;
+        ctx.save();
+        ctx.fillStyle = "white";
+        ctx.fillRect(WIDTH/4, HEIGHT/4, WIDTH/2, HEIGHT/2)
+        ctx.font = WIDTH/20+"px Arial";
+        ctx.beginPath();
+        ctx.strokeStyle = "black";
+        ctx.strokeRect(WIDTH/4, HEIGHT/4, WIDTH/2, HEIGHT/2);  
+        ctx.fillStyle = color;
+        ctx.textAlign = "center";
+        ctx.fillText(text, WIDTH/2, HEIGHT/2);
+        ctx.restore();
+        instructionsDiv.innerHTML = "";
+        showPlayerScore();
+      }
+      function fillCircle(color, radius, x, y){
+        //fills circle given parameters
+        ctx.save();
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.restore();
+      }
+      function submitGuess(){
+        var rad = Number(document.getElementById("chosenCompRad").value);
+        var theta = document.getElementById("chosenCompTheta").value;
+        codeBlock: {
+          if(theta.length == 0 || document.getElementById("chosenCompRad").value.length == 0){
+            correctAnswerField.innerHTML = "Empty field(s). Try again.";
+            break codeBlock;
+          }
+          if(theta.substring(0, 1) == "-"){
+            if(fracStrings.indexOf(theta.substring(1)) == "-1"){
+              showAnswer(false);
+              break codeBlock;
+            }
+            else{
+              if(rad>0){
+                var guessedThetaInt = toDomain(24-fracStrings.indexOf(theta.substring(1)));
+                showAnswer(correctPoint(rad, guessedThetaInt));
+              }
+              else{
+                var guessedThetaInt = toDomain(36-fracStrings.indexOf(theta.substring(1)));
+                showAnswer(correctPoint(Math.abs(rad), guessedThetaInt));
+              }
+            }
+          }
+          else{
+            if(fracStrings.indexOf(theta) == "-1"){
+              showAnswer(false);
+              break codeBlock;
+            }
+            else{
+              if(rad>0){
+                var guessedThetaInt = toDomain(fracStrings.indexOf(theta));
+                showAnswer(correctPoint(rad, guessedThetaInt));
+              }
+              else{
+                var guessedThetaInt = toDomain(fracStrings.indexOf(theta)+12);
+                showAnswer(correctPoint(Math.abs(rad), guessedThetaInt));
+              }
+            }
+          }
+         }
+        
+        function showAnswer(correct){
+            correctAnswerField.innerHTML = ((correct) ? "Correct!" : "Incorrect.") + " The computer guessed<br>(" + computerAttackPoint[0] + ", " + fracStrings[computerAttackPoint[1]] + ")"; 
+            enableButton(next);
+            submitAttemptButton.disabled = true;
+            playerCorrectAnswers[1] += 1;
+            playerCorrectAnswers[0] += correct;
+            Map.refreshMap(playerMap, [computerAttackPoint[0]+1, computerAttackPoint[1]]);
+        }
+      }
+      function correctPoint(r, t){
+        return (t == computerAttackPoint[1] || t == computerAttackPoint[1]+24) && r == computerAttackPoint[0];
+      }
+      function showPlayerScore(){
+        const fraction = playerCorrectAnswers[0] + "/" + playerCorrectAnswers[1];
+        ctx.save();
+        ctx.textAlign = "end";
+        ctx.fillStyle = "black";
+        ctx.font = "1.7vw Verdana";
+        ctx.fillText("Score: " + fraction, WIDTH*2/3 - 10, WIDTH/50);
+        ctx.restore();
+      }
+            
+      function initiateSetup(){
+        if(preloaded){
+          document.getElementById("startingScreen").style.display = "none";
+          next.style.display = "block";
+          setup();
+        }
+        else{
+          setTimeout(initiateSetup, 50);
+          }
+      }
+      initiateSetup();
+         /*  for(var x = 0; x < WIDTH*2/3; x++){
+        for(var y = 0; y < HEIGHT; y++){
+          var mp = realToPolar(x, y);//converts canvas x and y into polar
+          if(checkRadialDistance(mp[0], mp[1])[0][0]){ //returns true if in bounds
+            ctx.fillRect(x, y, 1, 1);
+          }
+        }
+      }
+      */
+      /*AUTOMATIC COMPUTER VICTORY
+      Map.turn = 1;
+      for(var i = 0; i < 120; i++){
+        if(!won){
+          computer.attack();   
+        }
+      }*/
+    </script>
+  </body>
+</html>
